@@ -1,83 +1,55 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
   <title>Diabetes Predictor</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 600px;
-      margin: auto;
-      padding: 30px;
-    }
-    input {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      font-size: 16px;
-    }
-    button {
-      padding: 12px 20px;
-      font-size: 18px;
-      cursor: pointer;
-    }
-  </style>
 </head>
 <body>
 
-  <h2>Diabetes Prediction Form</h2>
+<h2>Diabetes Prediction Form</h2>
 
-  <form id="predictionForm">
-    <input type="number" id="Pregnancies" placeholder="Pregnancies" required />
-    <input type="number" id="Glucose" placeholder="Glucose" required />
-    <input type="number" id="BloodPressure" placeholder="Blood Pressure" required />
-    <input type="number" id="SkinThickness" placeholder="Skin Thickness" required />
-    <input type="number" id="Insulin" placeholder="Insulin" required />
-    <input type="number" id="BMI" step="0.1" placeholder="BMI" required />
-    <input type="number" id="DiabetesPedigreeFunction" step="0.01" placeholder="Diabetes Pedigree Function" required />
-    <input type="number" id="Age" placeholder="Age" required />
-    <button type="submit">Check Diabetes</button>
-  </form>
+<form id="predictionForm">
+  <input type="number" id="Pregnancies" placeholder="Pregnancies" required><br>
+  <input type="number" id="Glucose" placeholder="Glucose" required><br>
+  <input type="number" id="BloodPressure" placeholder="Blood Pressure" required><br>
+  <input type="number" id="SkinThickness" placeholder="Skin Thickness" required><br>
+  <input type="number" id="Insulin" placeholder="Insulin" required><br>
+  <input type="number" id="BMI" step="0.1" placeholder="BMI" required><br>
+  <input type="number" id="DiabetesPedigreeFunction" step="0.01" placeholder="DPF" required><br>
+  <input type="number" id="Age" placeholder="Age" required><br>
 
-  <h3 id="result"></h3>
+  <button type="submit">Predict</button>
+</form>
 
-  <script>
-    document.getElementById('predictionForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
+<h3 id="result"></h3>
 
-      const data = {
-        Pregnancies: document.getElementById('Pregnancies').value,
-        Glucose: document.getElementById('Glucose').value,
-        BloodPressure: document.getElementById('BloodPressure').value,
-        SkinThickness: document.getElementById('SkinThickness').value,
-        Insulin: document.getElementById('Insulin').value,
-        BMI: document.getElementById('BMI').value,
-        DiabetesPedigreeFunction: document.getElementById('DiabetesPedigreeFunction').value,
-        Age: document.getElementById('Age').value
-      };
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  document.getElementById("predictionForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
 
-      try {
-        const response = await fetch('/predict', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(data)
-        });
+    const data = {
+      Pregnancies: document.getElementById("Pregnancies").value,
+      Glucose: document.getElementById("Glucose").value,
+      BloodPressure: document.getElementById("BloodPressure").value,
+      SkinThickness: document.getElementById("SkinThickness").value,
+      Insulin: document.getElementById("Insulin").value,
+      BMI: document.getElementById("BMI").value,
+      DiabetesPedigreeFunction: document.getElementById("DiabetesPedigreeFunction").value,
+      Age: document.getElementById("Age").value
+    };
 
-        const result = await response.json();
-
-        document.getElementById('result').innerText =
-          result.prediction
-            ? `Prediction: ${result.prediction} (Confidence: ${result.confidence})`
-            : `Error: ${result.error}`;
-
-      } catch (error) {
-        document.getElementById('result').innerText =
-          'Error: Could not connect to server.';
-      }
+    const res = await fetch("/predict", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(data)
     });
-  </script>
+
+    const result = await res.json();
+    document.getElementById("result").innerText =
+      result.prediction ? result.prediction : result.error;
+  });
+});
+</script>
 
 </body>
 </html>
