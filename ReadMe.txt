@@ -1,79 +1,94 @@
 🧠 Diabetes Prediction Web App
 
-A machine learning–powered web application for predicting diabetes risk based on user input data. This project integrates a trained ML model with a lightweight web interface for real-time predictions.
+🔗 Repository:
 
-🚀 Features
-🔍 Predict diabetes likelihood using trained ML model
-🌐 Simple web interface for user input
-⚡ Fast inference using pre-trained model (.h5)
-📦 Ready for deployment (Render-compatible setup included)
-🧪 Includes dataset and training notebook
+A machine learning–based web application that predicts whether a person is likely to have diabetes based on input health parameters. This project combines a trained deep learning model with a Flask web interface for real-time predictions.
+
+🚀 Overview
+
+This application allows users to input medical attributes (such as glucose level, BMI, age, etc.) and receive an instant prediction powered by a trained TensorFlow model.
+
+✨ Features
+🧾 User-friendly web interface (HTML + Flask)
+🤖 Pre-trained deep learning model (model_tf.h5)
+📊 Data preprocessing with scaler.pkl
+⚡ Real-time prediction
+🌐 Deployment-ready (Render-compatible setup included)
 📁 Project Structure
 .
-├── app.py                          # Main Flask application
-├── templates/                      # HTML templates
-│   └── index.html
+├── app.py                          # Flask backend application
+├── templates/
+│   └── index.html                  # Frontend UI
 ├── model_tf.h5                     # Trained TensorFlow model
-├── scaler.pkl                      # Feature scaler
-├── diabetes.csv                    # Dataset used
+├── scaler.pkl                      # Data scaler for preprocessing
+├── diabetes.csv                    # Dataset used for training
 ├── training_model_and_save.ipynb   # Model training notebook
 ├── requirements.txt                # Python dependencies
 ├── runtime.txt                     # Python version for deployment
 ├── .gitignore
 └── ReadMe.txt
 🛠️ Tech Stack
-Python
-Flask
-TensorFlow / Keras
-Scikit-learn
-HTML (Frontend)
-⚙️ Installation & Setup
+Backend: Flask (Python)
+Machine Learning: TensorFlow / Keras
+Data Processing: NumPy, Pandas, Scikit-learn
+Frontend: HTML, CSS
+Deployment: Render
+⚙️ Installation
 1. Clone the repository
-git clone https://github.com/your-username/just_check_render_.git
-cd just_check_render_
-2. Create virtual environment (recommended)
+git clone https://github.com/sawankr1987/Just_check_render_.git
+cd Just_check_render_
+2. Create and activate virtual environment
 conda create -n diabetes_env python=3.10
 conda activate diabetes_env
 3. Install dependencies
 pip install -r requirements.txt
-▶️ Run the Application
+▶️ Running the Application
 python app.py
 
-Then open your browser and go to:
+Then open your browser at:
 
 http://127.0.0.1:5000/
-📊 Model Details
-Model type: Neural Network (TensorFlow/Keras)
-Input: Patient health parameters
-Output: Diabetes prediction (binary classification)
-Preprocessing:
-Feature scaling using scaler.pkl
-🌍 Deployment
+🧠 Model Details
+Model Type: Deep Neural Network (TensorFlow/Keras)
+Task: Binary Classification (Diabetes: Yes/No)
+Dataset: diabetes.csv
+Preprocessing: Standard scaling using scaler.pkl
+🌍 Deployment (Render)
 
-This project is configured for deployment on platforms like Render.
+This project is configured for deployment on Render.
 
-Ensure:
+Key Requirements:
+requirements.txt → dependencies list
+runtime.txt → Python version
+Entry point → app.py
+🧪 Model Training
 
-requirements.txt is updated
-runtime.txt specifies Python version
-Entry point is correctly set (app.py)
-🧪 Training the Model
+To retrain the model:
 
-To retrain or modify the model:
+Open:
 
-Open training_model_and_save.ipynb
+training_model_and_save.ipynb
 Run all cells
-Save updated:
+Save updated files:
 model_tf.h5
 scaler.pkl
-📌 Notes
-Ensure consistent feature order during prediction
-Use the same scaler used during training
-HTML templates must remain inside /templates folder for Flask
+⚠️ Important Notes
+Ensure feature order matches training data
+Always use the same scaler for prediction
+Flask requires templates inside /templates
 🤝 Contributing
 
-Contributions are welcome. Feel free to fork the repo and submit a pull request.
+Contributions are welcome!
 
+Fork the repo
+Create a new branch
+Make changes
+Submit a Pull Request
 📄 License
 
-This project is open-source and available under the MIT License.
+This project is licensed under the MIT License.
+
+👨‍💻 Author
+
+Sawan Kumar
+GitHub: https://github.com/sawankr1987
