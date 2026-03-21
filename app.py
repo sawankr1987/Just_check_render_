@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import tensorflow as tf
 import joblib
@@ -26,11 +26,7 @@ except Exception as e:
 # =========================
 @app.route("/")
 def home():
-    return jsonify({
-        "message": "API is running",
-        "endpoint": "/predict (POST)"
-    })
-
+    return render_template("index.html")
 
 # =========================
 # Prediction Route
