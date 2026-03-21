@@ -3,61 +3,89 @@ from flask_cors import CORS
 import tensorflow as tf
 import joblib
 import numpy as np
+import pandas as pd
 
 app = Flask(__name__)
 CORS(app)
 
-# Load the trained Keras model
-model = tf.keras.models.load_model('model_tf.h5')
+# =========================
+# Load Model & Scaler
+# =========================
+try:
+    model = tf.keras.models.load_model('model_tf.h5')
+    scaler = joblib.load('scaler.pkl')
+    print("✅ Model and scaler loaded successfully")
+except Exception as e:
+    print("❌ Error loading model/scaler:", str(e))
+    model = None
+    scaler = None
 
-# Load the scaler
-scaler = joblib.load('scaler.pkl')
 
-import pandas as pd
+# =========================
+# Home Route (Fix 404)
+# =========================
+@app.route("/")
+def home():
+    return jsonify({
+        "message": "API is running",
+        "endpoint": "/predict (POST)"
+    })
 
+
+# =========================
+# Prediction Route
+# =========================
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
-        print("Request received")
+        if model is None or scaler is None:
+            return jsonify({'error': 'Model not loaded properly'}), 500
 
         data = request.get_json()
+
+        if not data:
+            return jsonify({'error': 'No input data provided'}), 400
+
         print("Incoming data:", data)
 
-        # Create DataFrame with correct column names
-        columns = ['Pregnancies','Glucose','BloodPressure','SkinThickness',
-                   'Insulin','BMI','DiabetesPedigreeFunction','Age']
+        # Required columns
+        columns = [
+            'Pregnancies', 'Glucose', 'BloodPressure', 'SkinThickness',
+            'Insulin', 'BMI', 'DiabetesPedigreeFunction', 'Age'
+        ]
 
-        input_df = pd.DataFrame([[ 
-            float(data['Pregnancies']),
-            float(data['Glucose']),
-            float(data['BloodPressure']),
-            float(data['SkinThickness']),
-            float(data['Insulin']),
-            float(data['BMI']),
-            float(data['DiabetesPedigreeFunction']),
-            float(data['Age'])
-        ]], columns=columns)
+        # Validate all fields exist
+        for col in columns:
+            if col not in data:
+                return jsonify({'error': f'Missing field: {col}'}), 400
 
-        # Scale
+        # Convert input to DataFrame
+        input_data = [[float(data[col]) for col in columns]]
+        input_df = pd.DataFrame(input_data, columns=columns)
+
+        # Scale input
         input_scaled = scaler.transform(input_df)
 
-        # Predict
-        prediction = model.predict(input_scaled)
-        predicted_class = int(prediction[0][0] > 0.5)
+        # Predict (silent mode)
+        prediction = model.predict(input_scaled, verbose=0)
 
+        predicted_class = int(prediction[0][0] > 0.5)
         result = "Diabetic" if predicted_class == 1 else "Not Diabetic"
 
         print("Prediction:", result)
 
-        return jsonify({'prediction': result})
+        return jsonify({
+            'prediction': result,
+            'confidence': float(prediction[0][0])
+        })
 
     except Exception as e:
         print("ERROR:", str(e))
         return jsonify({'error': str(e)}), 500
 
 
+# =========================
+# Run App
+# =========================
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
-
-
-
