@@ -35,55 +35,63 @@ def home():
 def predict():
     try:
         if model is None or scaler is None:
-            return jsonify({'error': 'Model not loaded properly'}), 500
+            return jsonify({'error': 'Model not loaded'}), 500
 
         data = request.get_json()
 
         if not data:
-            return jsonify({'error': 'No input data provided'}), 400
+            return jsonify({'error': 'No input data'}), 400
 
         print("Incoming data:", data)
 
-        # Ensure correct order
-        features = [
-            float(data['Pregnancies']),
-            float(data['Glucose']),
-            float(data['BloodPressure']),
-            float(data['SkinThickness']),
-            float(data['Insulin']),
-            float(data['BMI']),
-            float(data['DiabetesPedigreeFunction']),
-            float(data['Age'])
+        # Extract + validate
+        features = []
+        keys = [
+            'Pregnancies', 'Glucose', 'BloodPressure', 'SkinThickness',
+            'Insulin', 'BMI', 'DiabetesPedigreeFunction', 'Age'
         ]
 
-        # Convert to numpy array (IMPORTANT FIX)
-        input_array = np.array([features])
+        for key in keys:
+            if key not in data:
+                return jsonify({'error': f'Missing {key}'}), 400
+            features.append(float(data[key]))
 
-        # Scale input
+        # Convert safely
+        input_array = np.array(features, dtype=np.float32).reshape(1, -1)
+
+        print("Input shape:", input_array.shape)
+
+        # Scale
         input_scaled = scaler.transform(input_array)
 
-        # Predict
-        prediction = model.predict(input_scaled)
+        print("Scaled shape:", input_scaled.shape)
 
-        prob = float(prediction[0][0])
+        # Predict safely
+        prediction = model.predict(input_scaled, verbose=0)
+
+        print("Raw prediction:", prediction)
+
+        # Handle different output shapes
+        if prediction.ndim == 2:
+            prob = float(prediction[0][0])
+        else:
+            prob = float(prediction[0])
+
         predicted_class = int(prob > 0.5)
 
         result = "Diabetic" if predicted_class == 1 else "Not Diabetic"
 
-        print("Prediction:", result, "| Confidence:", prob)
-
         return jsonify({
-            'prediction': result,
-            'confidence': prob
+            "prediction": result,
+            "confidence": prob
         })
 
     except Exception as e:
         print("🔥 ERROR:", str(e))
-        return jsonify({'error': str(e)}), 500
+        return jsonify({
+            "error": str(e)
+        }), 500
 
 
-# =========================
-# Run App (local only)
-# =========================
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=True)
