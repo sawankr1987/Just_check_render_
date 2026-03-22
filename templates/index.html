@@ -1,58 +1,56 @@
-from flask import Flask, request, jsonify, render_template
-import numpy as np
-import pickle
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Diabetes Predictor</title>
+</head>
+<body>
 
-app = Flask(__name__)
+<h2>Diabetes Prediction Form</h2>
 
-# Load model and scaler
-model = pickle.load(open("model.pkl", "rb"))
-scaler = pickle.load(open("scaler.pkl", "rb"))
+<form id="predictionForm">
+  <input type="number" id="Pregnancies" placeholder="Pregnancies" required><br>
+  <input type="number" id="Glucose" placeholder="Glucose" required><br>
+  <input type="number" id="BloodPressure" placeholder="Blood Pressure" required><br>
+  <input type="number" id="SkinThickness" placeholder="Skin Thickness" required><br>
+  <input type="number" id="Insulin" placeholder="Insulin" required><br>
+  <input type="number" id="BMI" step="0.1" placeholder="BMI" required><br>
+  <input type="number" id="DiabetesPedigreeFunction" step="0.01" placeholder="DPF" required><br>
+  <input type="number" id="Age" placeholder="Age" required><br>
 
-@app.route('/')
-def home():
-    return render_template('index.html')
+  <button type="submit">Predict</button>
+</form>
 
+<h3 id="result"></h3>
 
-@app.route('/predict', methods=['POST'])
-def predict():
-    try:
-        # Get JSON data
-        data = request.get_json()
-        print("Received data:", data)
+<script>
+document.getElementById("predictionForm").addEventListener("submit", async function(e) {
+  e.preventDefault();
 
-        # Extract features
-        features = [
-            float(data['Pregnancies']),
-            float(data['Glucose']),
-            float(data['BloodPressure']),
-            float(data['SkinThickness']),
-            float(data['Insulin']),
-            float(data['BMI']),
-            float(data['DiabetesPedigreeFunction']),
-            float(data['Age'])
-        ]
+  const data = {
+    Pregnancies: document.getElementById("Pregnancies").value,
+    Glucose: document.getElementById("Glucose").value,
+    BloodPressure: document.getElementById("BloodPressure").value,
+    SkinThickness: document.getElementById("SkinThickness").value,
+    Insulin: document.getElementById("Insulin").value,
+    BMI: document.getElementById("BMI").value,
+    DiabetesPedigreeFunction: document.getElementById("DiabetesPedigreeFunction").value,
+    Age: document.getElementById("Age").value
+  };
 
-        # Scale input
-        final_input = scaler.transform([features])
+  const res = await fetch("/predict", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(data)
+  });
 
-        # Predict
-        prediction = model.predict(final_input)[0]
+  const result = await res.json();
 
-        # Probability (optional)
-        if hasattr(model, "predict_proba"):
-            prob = model.predict_proba(final_input)[0][1]
-        else:
-            prob = None
+  document.getElementById("result").innerText =
+    result.prediction !== undefined
+      ? "Prediction: " + result.prediction
+      : "Error: " + result.error;
+});
+</script>
 
-        return jsonify({
-            "prediction": int(prediction),
-            "probability": float(prob) if prob else None
-        })
-
-    except Exception as e:
-        print("Error:", str(e))
-        return jsonify({"error": str(e)})
-
-
-if __name__ == "__main__":
-    app.run(debug=True)
+</body>
+</html>
