@@ -1,55 +1,63 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Diabetes Predictor</title>
-</head>
-<body>
+from flask import Flask, request, jsonify, render_template
+import numpy as np
+import pickle
 
-<h2>Diabetes Prediction Form</h2>
+app = Flask(__name__)
 
-<form id="predictionForm">
-  <input type="number" id="Pregnancies" placeholder="Pregnancies" required><br>
-  <input type="number" id="Glucose" placeholder="Glucose" required><br>
-  <input type="number" id="BloodPressure" placeholder="Blood Pressure" required><br>
-  <input type="number" id="SkinThickness" placeholder="Skin Thickness" required><br>
-  <input type="number" id="Insulin" placeholder="Insulin" required><br>
-  <input type="number" id="BMI" step="0.1" placeholder="BMI" required><br>
-  <input type="number" id="DiabetesPedigreeFunction" step="0.01" placeholder="DPF" required><br>
-  <input type="number" id="Age" placeholder="Age" required><br>
+# Load model and scaler
+model = pickle.load(open("model.pkl", "rb"))
+scaler = pickle.load(open("scaler.pkl", "rb"))
 
-  <button type="submit">Predict</button>
-</form>
+@app.route('/')
+def home():
+    return render_template('index.html')
 
-<h3 id="result"></h3>
 
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-  document.getElementById("predictionForm").addEventListener("submit", async function(e) {
-    e.preventDefault();
+@app.route('/predict', methods=['POST'])
+def predict():
+    try:
+        # ✅ Get JSON data from frontend
+        data = request.get_json()
 
-    const data = {
-      Pregnancies: document.getElementById("Pregnancies").value,
-      Glucose: document.getElementById("Glucose").value,
-      BloodPressure: document.getElementById("BloodPressure").value,
-      SkinThickness: document.getElementById("SkinThickness").value,
-      Insulin: document.getElementById("Insulin").value,
-      BMI: document.getElementById("BMI").value,
-      DiabetesPedigreeFunction: document.getElementById("DiabetesPedigreeFunction").value,
-      Age: document.getElementById("Age").value
-    };
+        # Debug log (check Render logs)
+        print("Received data:", data)
 
-    const res = await fetch("/predict", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify(data)
-    });
+        # ✅ Extract features in correct order
+        features = [
+            float(data['Pregnancies']),
+            float(data['Glucose']),
+            float(data['BloodPressure']),
+            float(data['SkinThickness']),
+            float(data['Insulin']),
+            float(data['BMI']),
+            float(data['DiabetesPedigreeFunction']),
+            float(data['Age'])
+        ]
 
-    const result = await res.json();
-    document.getElementById("result").innerText =
-      result.prediction ? result.prediction : result.error;
-  });
-});
-</script>
+        # ✅ Convert & scale
+        final_input = scaler.transform([features])
 
-</body>
-</html>
+        # ✅ Predict
+        prediction = model.predict(final_input)[0]
+
+        # Optional: probability (if model supports it)
+        if hasattr(model, "predict_proba"):
+            prob = model.predict_proba(final_input)[0][1]
+        else:
+            prob = None
+
+        # ✅ Return JSON response
+        return jsonify({
+            "prediction": int(prediction),
+            "probability": float(prob) if prob is not None else None
+        })
+
+    except Exception as e:
+        print("Error:", str(e))
+        return jsonify({
+            "error": str(e)
+        })
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
