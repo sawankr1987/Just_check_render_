@@ -16,13 +16,11 @@ def home():
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
-        # ✅ Get JSON data from frontend
+        # Get JSON data
         data = request.get_json()
-
-        # Debug log (check Render logs)
         print("Received data:", data)
 
-        # ✅ Extract features in correct order
+        # Extract features
         features = [
             float(data['Pregnancies']),
             float(data['Glucose']),
@@ -34,29 +32,26 @@ def predict():
             float(data['Age'])
         ]
 
-        # ✅ Convert & scale
+        # Scale input
         final_input = scaler.transform([features])
 
-        # ✅ Predict
+        # Predict
         prediction = model.predict(final_input)[0]
 
-        # Optional: probability (if model supports it)
+        # Probability (optional)
         if hasattr(model, "predict_proba"):
             prob = model.predict_proba(final_input)[0][1]
         else:
             prob = None
 
-        # ✅ Return JSON response
         return jsonify({
             "prediction": int(prediction),
-            "probability": float(prob) if prob is not None else None
+            "probability": float(prob) if prob else None
         })
 
     except Exception as e:
         print("Error:", str(e))
-        return jsonify({
-            "error": str(e)
-        })
+        return jsonify({"error": str(e)})
 
 
 if __name__ == "__main__":
