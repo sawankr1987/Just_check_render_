@@ -3,7 +3,6 @@ from flask_cors import CORS
 import tensorflow as tf
 import joblib
 import numpy as np
-import pandas as pd
 
 app = Flask(__name__)
 CORS(app)
@@ -22,11 +21,12 @@ except Exception as e:
 
 
 # =========================
-# Home Route (Fix 404)
+# Home Route
 # =========================
 @app.route("/")
 def home():
     return render_template("index.html")
+
 
 # =========================
 # Prediction Route
@@ -44,44 +44,46 @@ def predict():
 
         print("Incoming data:", data)
 
-        # Required columns
-        columns = [
-            'Pregnancies', 'Glucose', 'BloodPressure', 'SkinThickness',
-            'Insulin', 'BMI', 'DiabetesPedigreeFunction', 'Age'
+        # Ensure correct order
+        features = [
+            float(data['Pregnancies']),
+            float(data['Glucose']),
+            float(data['BloodPressure']),
+            float(data['SkinThickness']),
+            float(data['Insulin']),
+            float(data['BMI']),
+            float(data['DiabetesPedigreeFunction']),
+            float(data['Age'])
         ]
 
-        # Validate all fields exist
-        for col in columns:
-            if col not in data:
-                return jsonify({'error': f'Missing field: {col}'}), 400
-
-        # Convert input to DataFrame
-        input_data = [[float(data[col]) for col in columns]]
-        input_df = pd.DataFrame(input_data, columns=columns)
+        # Convert to numpy array (IMPORTANT FIX)
+        input_array = np.array([features])
 
         # Scale input
-        input_scaled = scaler.transform(input_df)
+        input_scaled = scaler.transform(input_array)
 
-        # Predict (silent mode)
-        prediction = model.predict(input_scaled, verbose=0)
+        # Predict
+        prediction = model.predict(input_scaled)
 
-        predicted_class = int(prediction[0][0] > 0.5)
+        prob = float(prediction[0][0])
+        predicted_class = int(prob > 0.5)
+
         result = "Diabetic" if predicted_class == 1 else "Not Diabetic"
 
-        print("Prediction:", result)
+        print("Prediction:", result, "| Confidence:", prob)
 
         return jsonify({
             'prediction': result,
-            'confidence': float(prediction[0][0])
+            'confidence': prob
         })
 
     except Exception as e:
-        print("ERROR:", str(e))
+        print("🔥 ERROR:", str(e))
         return jsonify({'error': str(e)}), 500
 
 
 # =========================
-# Run App
+# Run App (local only)
 # =========================
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(debug=True)
